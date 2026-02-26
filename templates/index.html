@@ -249,6 +249,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
+      table-layout: fixed;
     }
 
     .result-table th {
@@ -273,7 +274,6 @@
     }
 
     .result-table td.td-trunc {
-      max-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -352,7 +352,6 @@
 
     /* Dans le modal : description et référence non tronquées */
     .modal-body .result-table td.td-trunc {
-      max-width: none;
       overflow: visible;
       text-overflow: clip;
       white-space: normal;
@@ -462,6 +461,20 @@
   </thead>
   {% endmacro %}
 
+  {# Colgroup : qty = 9ch (min du texte d'en-tête), fournisseurs = 30%, desc+ref = auto (parts égales) #}
+  {% macro bom_colgroup() %}
+  <colgroup>
+    {% for col in result_columns %}
+      {% if col == qty_col %}
+        <col style="width:9ch">
+      {% else %}
+        <col>
+      {% endif %}
+    {% endfor %}
+    <col style="width:30%">
+  </colgroup>
+  {% endmacro %}
+
   <div class="card">
     <h2>Résultat de la fusion</h2>
 
@@ -475,6 +488,7 @@
 
     <div class="table-wrapper">
       <table class="result-table">
+        {{ bom_colgroup() }}
         {{ bom_thead() }}
         <tbody>
           {% for row in result_data %}{{ bom_row(row, true) }}{% endfor %}
@@ -499,6 +513,7 @@
       <div class="modal-body">
         <div class="table-wrapper">
           <table class="result-table">
+            {{ bom_colgroup() }}
             {{ bom_thead() }}
             <tbody>
               {% for row in result_data %}{{ bom_row(row, false) }}{% endfor %}
