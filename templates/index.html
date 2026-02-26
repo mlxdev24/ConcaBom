@@ -249,7 +249,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
-      table-layout: fixed;
+      table-layout: auto;
     }
 
     .result-table th {
@@ -275,8 +275,6 @@
 
     .result-table td.td-trunc {
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
       cursor: default;
     }
 
@@ -284,7 +282,7 @@
     .result-table tr:last-child td { border-bottom: none; }
 
     /* ── Cellule fournisseurs ────────────────────────────── */
-    .supplier-cell { padding: 0.35rem 0.5rem; white-space: nowrap; overflow: hidden; }
+    .supplier-cell { padding: 0.35rem 0.5rem; white-space: nowrap; }
 
     .supplier-link {
       display: inline-block;
@@ -350,12 +348,6 @@
 
     .modal-body { flex: 1; overflow: auto; padding: 1.2rem 1.5rem; }
 
-    /* Dans le modal : description et référence non tronquées */
-    .modal-body .result-table td.td-trunc {
-      overflow: visible;
-      text-overflow: clip;
-      white-space: normal;
-    }
 
     @media (max-width: 600px) { .card { padding: 1.2rem; } }
   </style>
@@ -461,17 +453,18 @@
   </thead>
   {% endmacro %}
 
-  {# Colgroup : qty = 9ch (min du texte d'en-tête), fournisseurs = 30%, desc+ref = auto (parts égales) #}
+  {# Colgroup : qty et fournisseurs = auto (table-layout:auto s'ajuste au contenu),
+     colonnes de données (desc, ref…) = hint 30% identique → parts égales entre elles #}
   {% macro bom_colgroup() %}
   <colgroup>
     {% for col in result_columns %}
       {% if col == qty_col %}
-        <col style="width:9ch">
-      {% else %}
         <col>
+      {% else %}
+        <col style="width:30%">
       {% endif %}
     {% endfor %}
-    <col style="width:30%">
+    <col>
   </colgroup>
   {% endmacro %}
 
