@@ -1,5 +1,7 @@
 import io
 import os
+import tomllib
+from urllib.parse import quote_plus
 import pandas as pd
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for
 
@@ -7,6 +9,14 @@ app = Flask(__name__)
 app.secret_key = "concabom-secret"
 
 ALLOWED_EXTENSIONS = {"csv"}
+
+# Chargement des fournisseurs depuis le fichier TOML
+_SUPPLIERS_PATH = os.path.join(os.path.dirname(__file__), "suppliers.toml")
+with open(_SUPPLIERS_PATH, "rb") as _f:
+    SUPPLIERS = tomllib.load(_f)
+
+# Filtre Jinja2 pour encoder les références dans les URLs
+app.jinja_env.filters["urlencode"] = quote_plus
 
 
 def allowed_file(filename):
@@ -51,12 +61,14 @@ def merge_boms(files, sep=","):
     ordered.append(qty_col)
     result = result[ordered]
 
-    return result
+    return result, ref_col
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    result_table = None
+    result_data = None
+    result_columns = None
+    ref_col = None
     csv_data = None
 
     if request.method == "POST":
@@ -71,15 +83,23 @@ def index():
         if sep not in (",", ";"):
             sep = ","
         try:
-            result = merge_boms(valid_files, sep=sep)
-            result_table = result.to_html(index=False, classes="result-table", border=0)
+            result, ref_col = merge_boms(valid_files, sep=sep)
+            result_data = result.to_dict(orient="records")
+            result_columns = list(result.columns)
             csv_data = result.to_csv(index=False, sep=sep)
         except ValueError as e:
             flash(str(e), "error")
         except Exception as e:
             flash(f"Erreur lors de la fusion : {e}", "error")
 
-    return render_template("index.html", result_table=result_table, csv_data=csv_data)
+    return render_template(
+        "index.html",
+        result_data=result_data,
+        result_columns=result_columns,
+        ref_col=ref_col,
+        suppliers=SUPPLIERS,
+        csv_data=csv_data,
+    )
 
 
 @app.route("/download", methods=["POST"])

@@ -1,0 +1,32 @@
+# Configuration des fournisseurs de composants électroniques
+# La référence du composant est ajoutée à la fin de l'URL
+
+[farnell]
+name  = "Farnell"
+url   = "https://fr.farnell.com/search?st="
+color = "#e8792c"
+
+[rs]
+name  = "RS"
+url   = "https://fr.rs-online.com/web/c/?searchTerm="
+color = "#e41e26"
+
+[digikey]
+name  = "Digikey"
+url   = "https://www.digikey.fr/fr/products/result?keywords="
+color = "#cc0000"
+
+[mouser]
+name  = "Mouser"
+url   = "https://www.mouser.fr/Search/Refine?Keyword="
+color = "#0066cc"
+
+[tme]
+name  = "TME"
+url   = "https://www.tme.eu/fr/search/?search="
+color = "#009933"
+
+[conrad]
+name  = "Conrad"
+url   = "https://www.conrad.fr/search?search="
+color = "#e85c00"

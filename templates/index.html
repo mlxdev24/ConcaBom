@@ -27,7 +27,7 @@
     header h1 { font-size: 1.5rem; font-weight: 600; }
     header span { font-size: 0.9rem; opacity: 0.85; }
 
-    main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
 
     .card {
       background: white;
@@ -128,10 +128,17 @@
       color: #c5221f;
     }
 
+    /* Tableau résultat */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .result-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      white-space: nowrap;
     }
 
     .result-table th {
@@ -141,9 +148,15 @@
       text-align: left;
     }
 
+    .result-table th.th-supplier {
+      background: #444;
+      text-align: center;
+    }
+
     .result-table td {
-      padding: 0.6rem 1rem;
+      padding: 0.5rem 1rem;
       border-bottom: 1px solid #e8eaed;
+      vertical-align: middle;
     }
 
     .result-table tr:hover td { background: #f8f9fa; }
@@ -153,6 +166,28 @@
       font-size: 0.85rem;
       color: #666;
       margin-bottom: 0.8rem;
+    }
+
+    /* Liens fournisseurs */
+    .supplier-cell { text-align: center; padding: 0.4rem 0.5rem; }
+
+    .supplier-link {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      color: white;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      opacity: 0.9;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .supplier-link:hover {
+      opacity: 1;
+      transform: scale(1.05);
+      text-decoration: none;
     }
 
     @media (max-width: 600px) {
@@ -214,11 +249,49 @@
     </form>
   </div>
 
-  {% if result_table %}
+  {% if result_data %}
   <div class="card">
     <h2>Résultat de la fusion</h2>
-    <p class="result-count">Tableau fusionné — références dédoublonnées, quantités additionnées.</p>
-    {{ result_table | safe }}
+    <p class="result-count">
+      {{ result_data | length }} référence(s) — quantités additionnées.
+      Cliquez sur un fournisseur pour lancer la recherche.
+    </p>
+
+    <div class="table-wrapper">
+      <table class="result-table">
+        <thead>
+          <tr>
+            {% for col in result_columns %}
+              <th>{{ col }}</th>
+            {% endfor %}
+            {% for key, sup in suppliers.items() %}
+              <th class="th-supplier">{{ sup.name }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in result_data %}
+          <tr>
+            {% for col in result_columns %}
+              <td>{{ row[col] }}</td>
+            {% endfor %}
+            {% for key, sup in suppliers.items() %}
+              <td class="supplier-cell">
+                <a class="supplier-link"
+                   href="{{ sup.url }}{{ row[ref_col] | urlencode }}"
+                   style="background: {{ sup.color }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Rechercher {{ row[ref_col] }} sur {{ sup.name }}">
+                  {{ sup.name }}
+                </a>
+              </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
     <form method="POST" action="/download">
       <input type="hidden" name="csv_data" value="{{ csv_data }}">
