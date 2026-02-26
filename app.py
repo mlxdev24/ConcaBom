@@ -27,7 +27,11 @@ def merge_boms(files, sep=","):
     """Merge multiple BOM DataFrames: sum Quantity for matching References."""
     dfs = []
     for f in files:
-        content = f.read().decode("utf-8-sig")
+        raw = f.read()
+        try:
+            content = raw.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            content = raw.decode("latin-1")
         df = pd.read_csv(io.StringIO(content), sep=sep)
         df.columns = df.columns.str.strip()
         # Strip whitespace (spaces, tabs) from all string columns
