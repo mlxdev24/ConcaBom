@@ -249,7 +249,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
-      white-space: nowrap;
+      table-layout: fixed;
     }
 
     .result-table th {
@@ -259,7 +259,7 @@
       text-align: left;
     }
 
-    .result-table th.th-supplier { background: #444; text-align: center; }
+    .result-table th.th-supplier { background: #444; text-align: left; }
     [data-theme="dark"] .result-table th.th-supplier { background: #2d3348; }
 
     .result-table td {
@@ -267,27 +267,29 @@
       border-bottom: 1px solid var(--border);
       vertical-align: middle;
       color: var(--text-main);
+      word-break: break-word;
     }
 
     .result-table td.td-trunc {
-      max-width: 260px;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
       cursor: default;
     }
 
     .result-table tr:hover td { background: var(--bg-row-hover); }
     .result-table tr:last-child td { border-bottom: none; }
 
-    /* ── Liens fournisseurs ─────────────────────────────── */
-    .supplier-cell { text-align: center; padding: 0.4rem 0.5rem; }
+    /* ── Cellule fournisseurs ────────────────────────────── */
+    .supplier-cell { padding: 0.35rem 0.5rem; }
 
     .supplier-link {
       display: inline-block;
-      padding: 0.25rem 0.6rem;
+      margin: 2px 3px 2px 0;
+      padding: 0.22rem 0.55rem;
       border-radius: 4px;
       color: white;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 600;
       text-decoration: none;
       letter-spacing: 0.02em;
@@ -345,14 +347,12 @@
 
     .modal-body { flex: 1; overflow: auto; padding: 1.2rem 1.5rem; }
 
-    .modal-body .result-table {
-      table-layout: fixed;
-      width: 100%;
+    /* Dans le modal : description et référence non tronquées */
+    .modal-body .result-table td.td-trunc {
+      overflow: visible;
+      text-overflow: clip;
       white-space: normal;
     }
-    .modal-body .result-table td          { white-space: normal; word-break: break-word; }
-    .modal-body .result-table td.td-trunc { max-width: none; overflow: visible; text-overflow: clip; }
-    .modal-body .result-table .supplier-cell { white-space: nowrap; }
 
     @media (max-width: 600px) { .card { padding: 1.2rem; } }
   </style>
@@ -430,8 +430,8 @@
         <td {% if truncated %}class="td-trunc"{% endif %} title="{{ val }}">{{ val }}</td>
       {% endif %}
     {% endfor %}
-    {% for key, sup in suppliers.items() %}
-      <td class="supplier-cell">
+    <td class="supplier-cell">
+      {% for key, sup in suppliers.items() %}
         <a class="supplier-link"
            href="{{ sup.url }}{{ row[ref_col] | urlencode }}"
            style="background: {{ sup.color }}"
@@ -440,8 +440,8 @@
            title="Rechercher {{ row[ref_col] }} sur {{ sup.name }}">
           {{ sup.name }}
         </a>
-      </td>
-    {% endfor %}
+      {% endfor %}
+    </td>
   </tr>
   {% endmacro %}
 
@@ -449,24 +449,22 @@
   <thead>
     <tr>
       {% for col in result_columns %}<th>{{ col }}</th>{% endfor %}
-      {% for key, sup in suppliers.items() %}<th class="th-supplier">{{ sup.name }}</th>{% endfor %}
+      <th class="th-supplier">Fournisseurs</th>
     </tr>
   </thead>
   {% endmacro %}
 
-  {# Colgroup pour le modal : qty et fournisseurs en largeur fixe, desc et ref se partagent le reste #}
+  {# Colgroup : qty=10%, fournisseurs=40%, desc+ref se partagent les 50% restants à égalité #}
   {% macro bom_colgroup() %}
   <colgroup>
     {% for col in result_columns %}
       {% if col == qty_col %}
-        <col style="width:70px">
+        <col style="width:10%">
       {% else %}
         <col>
       {% endif %}
     {% endfor %}
-    {% for key, sup in suppliers.items() %}
-      <col style="width:90px">
-    {% endfor %}
+    <col style="width:40%">
   </colgroup>
   {% endmacro %}
 
@@ -483,6 +481,7 @@
 
     <div class="table-wrapper">
       <table class="result-table">
+        {{ bom_colgroup() }}
         {{ bom_thead() }}
         <tbody>
           {% for row in result_data %}{{ bom_row(row, true) }}{% endfor %}
