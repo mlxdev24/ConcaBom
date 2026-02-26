@@ -454,7 +454,7 @@
   </thead>
   {% endmacro %}
 
-  {# Colgroup : qty=10%, fournisseurs=20%, desc+ref se partagent les 70% restants à égalité #}
+  {# Colgroup : qty=10%, fournisseurs=30%, desc+ref se partagent les 60% restants à égalité #}
   {% macro bom_colgroup() %}
   <colgroup>
     {% for col in result_columns %}
@@ -464,7 +464,7 @@
         <col>
       {% endif %}
     {% endfor %}
-    <col style="width:20%">
+    <col style="width:30%">
   </colgroup>
   {% endmacro %}
 
