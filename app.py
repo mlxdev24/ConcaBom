@@ -65,7 +65,7 @@ def merge_boms(files, sep=","):
     ordered.append(qty_col)
     result = result[ordered]
 
-    return result, ref_col
+    return result, ref_col, qty_col
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -73,6 +73,7 @@ def index():
     result_data = None
     result_columns = None
     ref_col = None
+    qty_col = None
     csv_data = None
 
     if request.method == "POST":
@@ -87,7 +88,7 @@ def index():
         if sep not in (",", ";"):
             sep = ","
         try:
-            result, ref_col = merge_boms(valid_files, sep=sep)
+            result, ref_col, qty_col = merge_boms(valid_files, sep=sep)
             result_data = result.to_dict(orient="records")
             result_columns = list(result.columns)
             csv_data = result.to_csv(index=False, sep=sep)
@@ -101,6 +102,7 @@ def index():
         result_data=result_data,
         result_columns=result_columns,
         ref_col=ref_col,
+        qty_col=qty_col,
         suppliers=SUPPLIERS,
         csv_data=csv_data,
     )

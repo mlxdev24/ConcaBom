@@ -345,8 +345,14 @@
 
     .modal-body { flex: 1; overflow: auto; padding: 1.2rem 1.5rem; }
 
-    .modal-body .result-table td          { white-space: normal; min-width: 120px; }
-    .modal-body .result-table td.td-trunc { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; }
+    .modal-body .result-table {
+      table-layout: fixed;
+      width: 100%;
+      white-space: normal;
+    }
+    .modal-body .result-table td          { white-space: normal; word-break: break-word; }
+    .modal-body .result-table td.td-trunc { max-width: none; overflow: visible; text-overflow: clip; }
+    .modal-body .result-table .supplier-cell { white-space: nowrap; }
 
     @media (max-width: 600px) { .card { padding: 1.2rem; } }
   </style>
@@ -448,6 +454,22 @@
   </thead>
   {% endmacro %}
 
+  {# Colgroup pour le modal : qty et fournisseurs en largeur fixe, desc et ref se partagent le reste #}
+  {% macro bom_colgroup() %}
+  <colgroup>
+    {% for col in result_columns %}
+      {% if col == qty_col %}
+        <col style="width:70px">
+      {% else %}
+        <col>
+      {% endif %}
+    {% endfor %}
+    {% for key, sup in suppliers.items() %}
+      <col style="width:90px">
+    {% endfor %}
+  </colgroup>
+  {% endmacro %}
+
   <div class="card">
     <h2>Résultat de la fusion</h2>
 
@@ -456,7 +478,7 @@
         {{ result_data | length }} référence(s) — quantités additionnées.
         Cliquez sur un fournisseur pour lancer la recherche.
       </p>
-      <button class="btn btn-fullscreen" onclick="openModal()">⛶ Plein écran</button>
+      <button class="btn btn-fullscreen" onclick="openModal()">⛶ Agrandir</button>
     </div>
 
     <div class="table-wrapper">
@@ -485,6 +507,7 @@
       <div class="modal-body">
         <div class="table-wrapper">
           <table class="result-table">
+            {{ bom_colgroup() }}
             {{ bom_thead() }}
             <tbody>
               {% for row in result_data %}{{ bom_row(row, false) }}{% endfor %}
