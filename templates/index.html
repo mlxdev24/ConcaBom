@@ -111,13 +111,27 @@
 
     .btn:active { transform: scale(0.98); }
 
-    .btn-primary { background: #1a73e8; color: white; }
+    .btn-primary   { background: #1a73e8; color: white; }
     .btn-primary:hover { background: #1558b0; }
 
-    .btn-success { background: #34a853; color: white; }
+    .btn-success   { background: #34a853; color: white; }
     .btn-success:hover { background: #2d8f46; }
 
+    .btn-fullscreen { background: #444; color: white; padding: 0.5rem 1.2rem; font-size: 0.9rem; }
+    .btn-fullscreen:hover { background: #222; }
+
     .btn-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+
+    .result-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .result-count { font-size: 0.85rem; color: #666; }
 
     .flash-messages { margin-bottom: 1rem; }
     .flash-error {
@@ -159,14 +173,15 @@
       vertical-align: middle;
     }
 
+    .result-table td.td-trunc {
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: default;
+    }
+
     .result-table tr:hover td { background: #f8f9fa; }
     .result-table tr:last-child td { border-bottom: none; }
-
-    .result-count {
-      font-size: 0.85rem;
-      color: #666;
-      margin-bottom: 0.8rem;
-    }
 
     /* Liens fournisseurs */
     .supplier-cell { text-align: center; padding: 0.4rem 0.5rem; }
@@ -189,6 +204,61 @@
       transform: scale(1.05);
       text-decoration: none;
     }
+
+    /* Modal plein écran */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .modal-overlay.open { display: flex; flex-direction: column; }
+
+    .modal-content {
+      background: white;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.5rem;
+      background: #1a73e8;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .modal-header span { font-weight: 600; font-size: 1rem; }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.2); }
+
+    .modal-body {
+      flex: 1;
+      overflow: auto;
+      padding: 1.2rem 1.5rem;
+    }
+
+    .modal-body .result-table { white-space: nowrap; }
+    .modal-body .result-table td { white-space: normal; min-width: 120px; }
+    .modal-body .result-table td.td-trunc { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; }
 
     @media (max-width: 600px) {
       .card { padding: 1.2rem; }
@@ -250,45 +320,59 @@
   </div>
 
   {% if result_data %}
+
+  {# Macro : une ligne du tableau (truncated=true dans le tableau principal, false dans le modal) #}
+  {% macro bom_row(row, truncated) %}
+  <tr>
+    {% for col in result_columns %}
+      {% set val = row[col]|string %}
+      {% if truncated and val|length > 50 %}
+        <td class="td-trunc" title="{{ val }}">{{ val[:50] }}…</td>
+      {% else %}
+        <td {% if truncated %}class="td-trunc"{% endif %} title="{{ val }}">{{ val }}</td>
+      {% endif %}
+    {% endfor %}
+    {% for key, sup in suppliers.items() %}
+      <td class="supplier-cell">
+        <a class="supplier-link"
+           href="{{ sup.url }}{{ row[ref_col] | urlencode }}"
+           style="background: {{ sup.color }}"
+           target="_blank"
+           rel="noopener noreferrer"
+           title="Rechercher {{ row[ref_col] }} sur {{ sup.name }}">
+          {{ sup.name }}
+        </a>
+      </td>
+    {% endfor %}
+  </tr>
+  {% endmacro %}
+
+  {# En-têtes partagés #}
+  {% macro bom_thead() %}
+  <thead>
+    <tr>
+      {% for col in result_columns %}<th>{{ col }}</th>{% endfor %}
+      {% for key, sup in suppliers.items() %}<th class="th-supplier">{{ sup.name }}</th>{% endfor %}
+    </tr>
+  </thead>
+  {% endmacro %}
+
   <div class="card">
     <h2>Résultat de la fusion</h2>
-    <p class="result-count">
-      {{ result_data | length }} référence(s) — quantités additionnées.
-      Cliquez sur un fournisseur pour lancer la recherche.
-    </p>
+
+    <div class="result-toolbar">
+      <p class="result-count">
+        {{ result_data | length }} référence(s) — quantités additionnées.
+        Cliquez sur un fournisseur pour lancer la recherche.
+      </p>
+      <button class="btn btn-fullscreen" onclick="openModal()">⛶ Plein écran</button>
+    </div>
 
     <div class="table-wrapper">
       <table class="result-table">
-        <thead>
-          <tr>
-            {% for col in result_columns %}
-              <th>{{ col }}</th>
-            {% endfor %}
-            {% for key, sup in suppliers.items() %}
-              <th class="th-supplier">{{ sup.name }}</th>
-            {% endfor %}
-          </tr>
-        </thead>
+        {{ bom_thead() }}
         <tbody>
-          {% for row in result_data %}
-          <tr>
-            {% for col in result_columns %}
-              <td>{{ row[col] }}</td>
-            {% endfor %}
-            {% for key, sup in suppliers.items() %}
-              <td class="supplier-cell">
-                <a class="supplier-link"
-                   href="{{ sup.url }}{{ row[ref_col] | urlencode }}"
-                   style="background: {{ sup.color }}"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   title="Rechercher {{ row[ref_col] }} sur {{ sup.name }}">
-                  {{ sup.name }}
-                </a>
-              </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
+          {% for row in result_data %}{{ bom_row(row, true) }}{% endfor %}
         </tbody>
       </table>
     </div>
@@ -300,6 +384,27 @@
       </div>
     </form>
   </div>
+
+  <!-- Modal plein écran -->
+  <div id="bom-modal" class="modal-overlay" onclick="closeModalOnOverlay(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>BOM complète — {{ result_data | length }} référence(s)</span>
+        <button class="modal-close" onclick="closeModal()" title="Fermer (Échap)">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-wrapper">
+          <table class="result-table">
+            {{ bom_thead() }}
+            <tbody>
+              {% for row in result_data %}{{ bom_row(row, false) }}{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   {% endif %}
 
 </main>
@@ -322,6 +427,25 @@
   zone.addEventListener("dragover",  e => { e.preventDefault(); zone.style.background = "#e8f0fe"; });
   zone.addEventListener("dragleave", () => { zone.style.background = ""; });
   zone.addEventListener("drop",      () => { zone.style.background = ""; });
+
+  // Modal
+  function openModal() {
+    document.getElementById("bom-modal").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    document.getElementById("bom-modal").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  function closeModalOnOverlay(e) {
+    if (e.target === document.getElementById("bom-modal")) closeModal();
+  }
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeModal();
+  });
 </script>
 
 </body>
