@@ -18,7 +18,7 @@ color = "#cc0000"
 
 [mouser]
 name  = "Mouser"
-url   = "https://www.mouser.fr/Search/Refine?Keyword="
+url   = "https://www.mouser.fr/c/?q="
 color = "#0066cc"
 
 [octopart]
