@@ -4,16 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ConcaBom — Fusion de BOM</title>
+  <!-- Anti-flash : appliquer le thème avant le rendu -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark')
+      document.documentElement.dataset.theme = 'dark';
+  </script>
   <style>
+    /* ── Variables de thème ─────────────────────────────── */
+    :root {
+      --bg-page:       #f0f2f5;
+      --bg-card:       #ffffff;
+      --bg-row-hover:  #f8f9fa;
+      --bg-file-item:  #f0f6ff;
+      --bg-drop-hover: #f0f6ff;
+      --bg-modal:      #ffffff;
+      --text-main:     #333333;
+      --text-muted:    #555555;
+      --text-faint:    #999999;
+      --text-label:    #444444;
+      --text-count:    #666666;
+      --border:        #e8eaed;
+      --shadow-card:   rgba(0,0,0,0.08);
+      --flash-bg:      #fdecea;
+      --flash-text:    #c5221f;
+      --flash-border:  #d93025;
+    }
+
+    [data-theme="dark"] {
+      --bg-page:       #0f1117;
+      --bg-card:       #1a1d2e;
+      --bg-row-hover:  #242740;
+      --bg-file-item:  #1f2235;
+      --bg-drop-hover: #1c1f33;
+      --bg-modal:      #1a1d2e;
+      --text-main:     #e2e8f0;
+      --text-muted:    #94a3b8;
+      --text-faint:    #64748b;
+      --text-label:    #cbd5e1;
+      --text-count:    #94a3b8;
+      --border:        #2d3348;
+      --shadow-card:   rgba(0,0,0,0.35);
+      --flash-bg:      #3b1212;
+      --flash-text:    #fca5a5;
+      --flash-border:  #ef4444;
+    }
+
+    /* ── Base ───────────────────────────────────────────── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      background: #f0f2f5;
-      color: #333;
+      background: var(--bg-page);
+      color: var(--text-main);
       min-height: 100vh;
+      transition: background 0.25s, color 0.25s;
     }
 
+    /* ── Header ─────────────────────────────────────────── */
     header {
       background: #1a73e8;
       color: white;
@@ -24,21 +71,63 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
-    header h1 { font-size: 1.5rem; font-weight: 600; }
+    header h1   { font-size: 1.5rem; font-weight: 600; }
     header span { font-size: 0.9rem; opacity: 0.85; }
 
+    /* Toggle thème dans le header */
+    .theme-switch {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .theme-switch input { display: none; }
+
+    .switch-icon { font-size: 1rem; line-height: 1; }
+
+    .switch-track {
+      width: 42px;
+      height: 22px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 11px;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .switch-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .theme-switch input:checked ~ .switch-track { background: rgba(255,255,255,0.45); }
+    .theme-switch input:checked ~ .switch-track .switch-thumb { transform: translateX(20px); }
+
+    /* ── Layout ─────────────────────────────────────────── */
     main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
 
     .card {
-      background: white;
+      background: var(--bg-card);
       border-radius: 10px;
       padding: 2rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 10px var(--shadow-card);
       margin-bottom: 2rem;
+      transition: background 0.25s, box-shadow 0.25s;
     }
 
     .card h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #1a73e8; }
 
+    /* ── Séparateur ─────────────────────────────────────── */
     .sep-selector {
       display: flex;
       align-items: center;
@@ -47,7 +136,7 @@
       flex-wrap: wrap;
     }
 
-    .sep-label { font-weight: 600; color: #444; font-size: 0.9rem; }
+    .sep-label { font-weight: 600; color: var(--text-label); font-size: 0.9rem; }
 
     .sep-option {
       display: flex;
@@ -55,11 +144,12 @@
       gap: 0.3rem;
       cursor: pointer;
       font-size: 0.9rem;
-      color: #333;
+      color: var(--text-main);
     }
 
     .sep-option input[type="radio"] { accent-color: #1a73e8; cursor: pointer; }
 
+    /* ── Drop zone ──────────────────────────────────────── */
     .drop-zone {
       border: 2px dashed #1a73e8;
       border-radius: 8px;
@@ -70,7 +160,7 @@
       position: relative;
     }
 
-    .drop-zone:hover { background: #f0f6ff; }
+    .drop-zone:hover { background: var(--bg-drop-hover); }
 
     .drop-zone input[type="file"] {
       position: absolute;
@@ -82,22 +172,24 @@
     }
 
     .drop-zone .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    .drop-zone p { color: #555; }
-    .drop-zone small { color: #999; }
+    .drop-zone p     { color: var(--text-muted); }
+    .drop-zone small { color: var(--text-faint); }
 
+    /* ── Liste fichiers ─────────────────────────────────── */
     #file-list { margin-top: 1rem; list-style: none; }
     #file-list li {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       padding: 0.4rem 0.6rem;
-      background: #f0f6ff;
+      background: var(--bg-file-item);
       border-radius: 5px;
       margin-bottom: 0.4rem;
       font-size: 0.9rem;
     }
     #file-list li::before { content: "📄"; }
 
+    /* ── Boutons ────────────────────────────────────────── */
     .btn {
       display: inline-block;
       padding: 0.7rem 1.8rem;
@@ -111,17 +203,31 @@
 
     .btn:active { transform: scale(0.98); }
 
-    .btn-primary   { background: #1a73e8; color: white; }
+    .btn-primary       { background: #1a73e8; color: white; }
     .btn-primary:hover { background: #1558b0; }
 
-    .btn-success   { background: #34a853; color: white; }
+    .btn-success       { background: #34a853; color: white; }
     .btn-success:hover { background: #2d8f46; }
 
-    .btn-fullscreen { background: #444; color: white; padding: 0.5rem 1.2rem; font-size: 0.9rem; }
+    .btn-fullscreen       { background: #444; color: white; padding: 0.5rem 1.2rem; font-size: 0.9rem; }
     .btn-fullscreen:hover { background: #222; }
+
+    [data-theme="dark"] .btn-fullscreen       { background: #4a5070; }
+    [data-theme="dark"] .btn-fullscreen:hover { background: #5a6080; }
 
     .btn-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
 
+    /* ── Flash ──────────────────────────────────────────── */
+    .flash-messages { margin-bottom: 1rem; }
+    .flash-error {
+      background: var(--flash-bg);
+      border-left: 4px solid var(--flash-border);
+      padding: 0.8rem 1rem;
+      border-radius: 4px;
+      color: var(--flash-text);
+    }
+
+    /* ── Toolbar résultat ───────────────────────────────── */
     .result-toolbar {
       display: flex;
       align-items: center;
@@ -131,18 +237,9 @@
       margin-bottom: 0.8rem;
     }
 
-    .result-count { font-size: 0.85rem; color: #666; }
+    .result-count { font-size: 0.85rem; color: var(--text-count); }
 
-    .flash-messages { margin-bottom: 1rem; }
-    .flash-error {
-      background: #fdecea;
-      border-left: 4px solid #d93025;
-      padding: 0.8rem 1rem;
-      border-radius: 4px;
-      color: #c5221f;
-    }
-
-    /* Tableau résultat */
+    /* ── Tableau ────────────────────────────────────────── */
     .table-wrapper {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -162,15 +259,14 @@
       text-align: left;
     }
 
-    .result-table th.th-supplier {
-      background: #444;
-      text-align: center;
-    }
+    .result-table th.th-supplier { background: #444; text-align: center; }
+    [data-theme="dark"] .result-table th.th-supplier { background: #2d3348; }
 
     .result-table td {
       padding: 0.5rem 1rem;
-      border-bottom: 1px solid #e8eaed;
+      border-bottom: 1px solid var(--border);
       vertical-align: middle;
+      color: var(--text-main);
     }
 
     .result-table td.td-trunc {
@@ -180,10 +276,10 @@
       cursor: default;
     }
 
-    .result-table tr:hover td { background: #f8f9fa; }
+    .result-table tr:hover td { background: var(--bg-row-hover); }
     .result-table tr:last-child td { border-bottom: none; }
 
-    /* Liens fournisseurs */
+    /* ── Liens fournisseurs ─────────────────────────────── */
     .supplier-cell { text-align: center; padding: 0.4rem 0.5rem; }
 
     .supplier-link {
@@ -199,13 +295,9 @@
       transition: opacity 0.15s, transform 0.1s;
     }
 
-    .supplier-link:hover {
-      opacity: 1;
-      transform: scale(1.05);
-      text-decoration: none;
-    }
+    .supplier-link:hover { opacity: 1; transform: scale(1.05); }
 
-    /* Modal plein écran */
+    /* ── Modal plein écran ──────────────────────────────── */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -218,11 +310,12 @@
     .modal-overlay.open { display: flex; flex-direction: column; }
 
     .modal-content {
-      background: white;
+      background: var(--bg-modal);
       width: 100%;
       height: 100%;
       display: flex;
       flex-direction: column;
+      transition: background 0.25s;
     }
 
     .modal-header {
@@ -250,19 +343,12 @@
     }
     .modal-close:hover { background: rgba(255,255,255,0.2); }
 
-    .modal-body {
-      flex: 1;
-      overflow: auto;
-      padding: 1.2rem 1.5rem;
-    }
+    .modal-body { flex: 1; overflow: auto; padding: 1.2rem 1.5rem; }
 
-    .modal-body .result-table { white-space: nowrap; }
-    .modal-body .result-table td { white-space: normal; min-width: 120px; }
+    .modal-body .result-table td          { white-space: normal; min-width: 120px; }
     .modal-body .result-table td.td-trunc { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; }
 
-    @media (max-width: 600px) {
-      .card { padding: 1.2rem; }
-    }
+    @media (max-width: 600px) { .card { padding: 1.2rem; } }
   </style>
 </head>
 <body>
@@ -272,6 +358,13 @@
     <h1>ConcaBom</h1>
     <span>Fusionnez vos Bill of Materials en quelques secondes</span>
   </div>
+
+  <label class="theme-switch" title="Basculer le thème">
+    <input type="checkbox" id="dark-toggle" onchange="applyTheme(this.checked)">
+    <span class="switch-icon">☀</span>
+    <span class="switch-track"><span class="switch-thumb"></span></span>
+    <span class="switch-icon">🌙</span>
+  </label>
 </header>
 
 <main>
@@ -286,7 +379,7 @@
 
   <div class="card">
     <h2>Uploader vos fichiers BOM (CSV)</h2>
-    <p style="margin-bottom:1rem; color:#555; font-size:0.9rem;">
+    <p style="margin-bottom:1rem; color:var(--text-muted); font-size:0.9rem;">
       Sélectionnez <strong>au moins 2 fichiers CSV</strong>. Les colonnes attendues sont
       <code>Description</code>, <code>Reference</code>, <code>Quantity</code>
       (insensible à la casse).
@@ -321,7 +414,6 @@
 
   {% if result_data %}
 
-  {# Macro : une ligne du tableau (truncated=true dans le tableau principal, false dans le modal) #}
   {% macro bom_row(row, truncated) %}
   <tr>
     {% for col in result_columns %}
@@ -347,7 +439,6 @@
   </tr>
   {% endmacro %}
 
-  {# En-têtes partagés #}
   {% macro bom_thead() %}
   <thead>
     <tr>
@@ -385,7 +476,6 @@
     </form>
   </div>
 
-  <!-- Modal plein écran -->
   <div id="bom-modal" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content">
       <div class="modal-header">
@@ -410,6 +500,20 @@
 </main>
 
 <script>
+  /* ── Thème ─────────────────────────────────────────────── */
+  function applyTheme(dark) {
+    document.documentElement.dataset.theme = dark ? 'dark' : '';
+    document.getElementById('dark-toggle').checked = dark;
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+  }
+
+  // Sync le toggle avec l'état appliqué en <head>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('dark-toggle').checked =
+      document.documentElement.dataset.theme === 'dark';
+  });
+
+  /* ── Upload ─────────────────────────────────────────────── */
   const input = document.getElementById("file-input");
   const list  = document.getElementById("file-list");
 
@@ -422,13 +526,12 @@
     });
   });
 
-  // Drag & drop highlight
   const zone = document.getElementById("drop-zone");
-  zone.addEventListener("dragover",  e => { e.preventDefault(); zone.style.background = "#e8f0fe"; });
+  zone.addEventListener("dragover",  e => { e.preventDefault(); zone.style.background = "var(--bg-drop-hover)"; });
   zone.addEventListener("dragleave", () => { zone.style.background = ""; });
   zone.addEventListener("drop",      () => { zone.style.background = ""; });
 
-  // Modal
+  /* ── Modal ──────────────────────────────────────────────── */
   function openModal() {
     document.getElementById("bom-modal").classList.add("open");
     document.body.style.overflow = "hidden";
