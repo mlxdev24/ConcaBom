@@ -1,6 +1,11 @@
 Description,Reference,Quantity
-Résistance 10k,R10K,6
-LED bleue,LED-B,10
-Condensateur 100nF,C100N,4
-Bouton poussoir,BTN,2
-Connecteur 2 broches,CONN2,5
+Connecteur Molex 2 pos,39-00-0039,6
+Résistance 10k 1% 0402,RC0402FR-0710KL,30
+Condensateur 10uF 16V 0805,GRM21BR61C106KE15L,12
+Régulateur 3.3V LDO SOT-223,AMS1117-3.3,3
+LED rouge 0603,LTST-C191KRKT,5
+LED verte 0603,LTST-C191KGKT,10
+Condensateur 100nF 50V 0402,GRM155R71H104KE14D,20
+Résistance 4.7k 1% 0402,RC0402FR-074K7L,40
+Connecteur Molex 4 pos,39-01-2040,2
+Fusible réinitialisable 500mA,MF-MSMF050-2,3

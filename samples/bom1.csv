@@ -1,6 +1,11 @@
 Description,Reference,Quantity
-Résistance 10k,R10K,12
-Condensateur 100nF,C100N,8
-LED rouge,LED-R,5
-Résistance 4.7k,R4K7,20
-Connecteur 2 broches,CONN2,3
+Connecteur Molex 2 pos,39-00-0039,4
+Résistance 10k 1% 0402,RC0402FR-0710KL,50
+Condensateur 100nF 50V 0402,GRM155R71H104KE14D,30
+Régulateur 3.3V LDO SOT-223,AMS1117-3.3,2
+Microcontrôleur STM32F103C8T6,STM32F103C8T6,1
+LED rouge 0603,LTST-C191KRKT,10
+Transistor NPN SOT-23,BC847BW,8
+Quartz 8MHz,ABLS-8.000MHZ-B4-T,1
+Connecteur USB-B micro SMD,10118194-0001LF,1
+Résistance 100R 1% 0402,RC0402FR-07100RL,20
