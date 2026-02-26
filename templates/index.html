@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConcaBom — Fusion de BOM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a73e8;
+      color: white;
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    header h1 { font-size: 1.5rem; font-weight: 600; }
+    header span { font-size: 0.9rem; opacity: 0.85; }
+
+    main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+
+    .card h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #1a73e8; }
+
+    .drop-zone {
+      border: 2px dashed #1a73e8;
+      border-radius: 8px;
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    .drop-zone:hover { background: #f0f6ff; }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-zone .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .drop-zone p { color: #555; }
+    .drop-zone small { color: #999; }
+
+    #file-list { margin-top: 1rem; list-style: none; }
+    #file-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.6rem;
+      background: #f0f6ff;
+      border-radius: 5px;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+    }
+    #file-list li::before { content: "📄"; }
+
+    .btn {
+      display: inline-block;
+      padding: 0.7rem 1.8rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary { background: #1a73e8; color: white; }
+    .btn-primary:hover { background: #1558b0; }
+
+    .btn-success { background: #34a853; color: white; }
+    .btn-success:hover { background: #2d8f46; }
+
+    .btn-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+
+    .flash-messages { margin-bottom: 1rem; }
+    .flash-error {
+      background: #fdecea;
+      border-left: 4px solid #d93025;
+      padding: 0.8rem 1rem;
+      border-radius: 4px;
+      color: #c5221f;
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    .result-table th {
+      background: #1a73e8;
+      color: white;
+      padding: 0.7rem 1rem;
+      text-align: left;
+    }
+
+    .result-table td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #e8eaed;
+    }
+
+    .result-table tr:hover td { background: #f8f9fa; }
+    .result-table tr:last-child td { border-bottom: none; }
+
+    .result-count {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 0.8rem;
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>ConcaBom</h1>
+    <span>Fusionnez vos Bill of Materials en quelques secondes</span>
+  </div>
+</header>
+
+<main>
+
+  {% if get_flashed_messages() %}
+  <div class="flash-messages">
+    {% for msg in get_flashed_messages() %}
+      <div class="flash-error">⚠ {{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Uploader vos fichiers BOM (CSV)</h2>
+    <p style="margin-bottom:1rem; color:#555; font-size:0.9rem;">
+      Sélectionnez <strong>au moins 2 fichiers CSV</strong>. Les colonnes attendues sont
+      <code>Description</code>, <code>Reference</code>, <code>Quantity</code>
+      (insensible à la casse, séparateur <code>,</code> ou <code>;</code>).
+    </p>
+
+    <form method="POST" action="/" enctype="multipart/form-data" id="upload-form">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" name="bom_files" id="file-input" multiple accept=".csv">
+        <div class="icon">📂</div>
+        <p>Glissez-déposez vos fichiers ici</p>
+        <small>ou cliquez pour parcourir</small>
+      </div>
+
+      <ul id="file-list"></ul>
+
+      <div class="btn-row">
+        <button type="submit" class="btn btn-primary">⚡ Fusionner les BOM</button>
+      </div>
+    </form>
+  </div>
+
+  {% if result_table %}
+  <div class="card">
+    <h2>Résultat de la fusion</h2>
+    <p class="result-count">Tableau fusionné — références dédoublonnées, quantités additionnées.</p>
+    {{ result_table | safe }}
+
+    <form method="POST" action="/download">
+      <input type="hidden" name="csv_data" value="{{ csv_data }}">
+      <div class="btn-row">
+        <button type="submit" class="btn btn-success">⬇ Télécharger BOM_result.csv</button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+</main>
+
+<script>
+  const input = document.getElementById("file-input");
+  const list  = document.getElementById("file-list");
+
+  input.addEventListener("change", () => {
+    list.innerHTML = "";
+    Array.from(input.files).forEach(f => {
+      const li = document.createElement("li");
+      li.textContent = f.name;
+      list.appendChild(li);
+    });
+  });
+
+  // Drag & drop highlight
+  const zone = document.getElementById("drop-zone");
+  zone.addEventListener("dragover",  e => { e.preventDefault(); zone.style.background = "#e8f0fe"; });
+  zone.addEventListener("dragleave", () => { zone.style.background = ""; });
+  zone.addEventListener("drop",      () => { zone.style.background = ""; });
+</script>
+
+</body>
+</html>
