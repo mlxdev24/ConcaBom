@@ -499,7 +499,6 @@
       <div class="modal-body">
         <div class="table-wrapper">
           <table class="result-table">
-            {{ bom_colgroup() }}
             {{ bom_thead() }}
             <tbody>
               {% for row in result_data %}{{ bom_row(row, false) }}{% endfor %}
