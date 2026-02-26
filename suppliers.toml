@@ -21,12 +21,12 @@ name  = "Mouser"
 url   = "https://www.mouser.fr/Search/Refine?Keyword="
 color = "#0066cc"
 
-[tme]
-name  = "TME"
-url   = "https://www.tme.eu/fr/search/?search="
-color = "#009933"
+[octopart]
+name  = "Octopart"
+url   = "https://octopart.com/fr/search?q="
+color = "#6b21a8"
 
-[conrad]
-name  = "Conrad"
-url   = "https://www.conrad.fr/search?search="
-color = "#e85c00"
+[google]
+name  = "Google"
+url   = "https://www.google.com/search?q="
+color = "#4285f4"
