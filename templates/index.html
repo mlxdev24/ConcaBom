@@ -249,7 +249,6 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
-      table-layout: fixed;
     }
 
     .result-table th {
@@ -262,6 +261,9 @@
     .result-table th.th-supplier { background: #444; text-align: left; }
     [data-theme="dark"] .result-table th.th-supplier { background: #2d3348; }
 
+    .result-table th.th-qty,
+    .result-table td.td-qty { white-space: nowrap; }
+
     .result-table td {
       padding: 0.5rem 1rem;
       border-bottom: 1px solid var(--border);
@@ -271,6 +273,7 @@
     }
 
     .result-table td.td-trunc {
+      max-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -281,7 +284,7 @@
     .result-table tr:last-child td { border-bottom: none; }
 
     /* ── Cellule fournisseurs ────────────────────────────── */
-    .supplier-cell { padding: 0.35rem 0.5rem; }
+    .supplier-cell { padding: 0.35rem 0.5rem; white-space: nowrap; overflow: hidden; }
 
     .supplier-link {
       display: inline-block;
@@ -349,6 +352,7 @@
 
     /* Dans le modal : description et référence non tronquées */
     .modal-body .result-table td.td-trunc {
+      max-width: none;
       overflow: visible;
       text-overflow: clip;
       white-space: normal;
@@ -424,7 +428,9 @@
   <tr>
     {% for col in result_columns %}
       {% set val = row[col]|string %}
-      {% if truncated and val|length > 50 %}
+      {% if col == qty_col %}
+        <td class="td-qty">{{ val }}</td>
+      {% elif truncated and val|length > 50 %}
         <td class="td-trunc" title="{{ val }}">{{ val[:50] }}…</td>
       {% else %}
         <td {% if truncated %}class="td-trunc"{% endif %} title="{{ val }}">{{ val }}</td>
@@ -448,24 +454,12 @@
   {% macro bom_thead() %}
   <thead>
     <tr>
-      {% for col in result_columns %}<th>{{ col }}</th>{% endfor %}
+      {% for col in result_columns %}
+        <th {% if col == qty_col %}class="th-qty"{% endif %}>{{ col }}</th>
+      {% endfor %}
       <th class="th-supplier">Fournisseurs</th>
     </tr>
   </thead>
-  {% endmacro %}
-
-  {# Colgroup : qty=10%, fournisseurs=30%, desc+ref se partagent les 60% restants à égalité #}
-  {% macro bom_colgroup() %}
-  <colgroup>
-    {% for col in result_columns %}
-      {% if col == qty_col %}
-        <col style="width:10%">
-      {% else %}
-        <col>
-      {% endif %}
-    {% endfor %}
-    <col style="width:30%">
-  </colgroup>
   {% endmacro %}
 
   <div class="card">
@@ -481,7 +475,6 @@
 
     <div class="table-wrapper">
       <table class="result-table">
-        {{ bom_colgroup() }}
         {{ bom_thead() }}
         <tbody>
           {% for row in result_data %}{{ bom_row(row, true) }}{% endfor %}
