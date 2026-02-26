@@ -13,13 +13,11 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def merge_boms(files):
+def merge_boms(files, sep=","):
     """Merge multiple BOM DataFrames: sum Quantity for matching References."""
     dfs = []
     for f in files:
         content = f.read().decode("utf-8-sig")
-        # Auto-detect separator
-        sep = ";" if ";" in content.split("\n")[0] else ","
         df = pd.read_csv(io.StringIO(content), sep=sep)
         df.columns = df.columns.str.strip()
         # Strip whitespace (spaces, tabs) from all string columns
@@ -69,10 +67,13 @@ def index():
             flash("Veuillez uploader au moins 2 fichiers CSV.", "error")
             return redirect(url_for("index"))
 
+        sep = request.form.get("separator", ",")
+        if sep not in (",", ";"):
+            sep = ","
         try:
-            result = merge_boms(valid_files)
+            result = merge_boms(valid_files, sep=sep)
             result_table = result.to_html(index=False, classes="result-table", border=0)
-            csv_data = result.to_csv(index=False)
+            csv_data = result.to_csv(index=False, sep=sep)
         except ValueError as e:
             flash(str(e), "error")
         except Exception as e:

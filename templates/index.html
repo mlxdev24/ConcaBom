@@ -39,6 +39,27 @@
 
     .card h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #1a73e8; }
 
+    .sep-selector {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .sep-label { font-weight: 600; color: #444; font-size: 0.9rem; }
+
+    .sep-option {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #333;
+    }
+
+    .sep-option input[type="radio"] { accent-color: #1a73e8; cursor: pointer; }
+
     .drop-zone {
       border: 2px dashed #1a73e8;
       border-radius: 8px;
@@ -163,10 +184,21 @@
     <p style="margin-bottom:1rem; color:#555; font-size:0.9rem;">
       Sélectionnez <strong>au moins 2 fichiers CSV</strong>. Les colonnes attendues sont
       <code>Description</code>, <code>Reference</code>, <code>Quantity</code>
-      (insensible à la casse, séparateur <code>,</code> ou <code>;</code>).
+      (insensible à la casse).
     </p>
 
     <form method="POST" action="/" enctype="multipart/form-data" id="upload-form">
+
+      <div class="sep-selector">
+        <span class="sep-label">Délimiteur :</span>
+        <label class="sep-option">
+          <input type="radio" name="separator" value="," checked> virgule &nbsp;<code>,</code>
+        </label>
+        <label class="sep-option">
+          <input type="radio" name="separator" value=";"> point-virgule &nbsp;<code>;</code>
+        </label>
+      </div>
+
       <div class="drop-zone" id="drop-zone">
         <input type="file" name="bom_files" id="file-input" multiple accept=".csv">
         <div class="icon">📂</div>
