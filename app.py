@@ -22,6 +22,8 @@ def merge_boms(files):
         sep = ";" if ";" in content.split("\n")[0] else ","
         df = pd.read_csv(io.StringIO(content), sep=sep)
         df.columns = df.columns.str.strip()
+        # Strip whitespace (spaces, tabs) from all string columns
+        df = df.apply(lambda col: col.str.strip() if pd.api.types.is_string_dtype(col) else col)
         dfs.append(df)
 
     combined = pd.concat(dfs, ignore_index=True)
